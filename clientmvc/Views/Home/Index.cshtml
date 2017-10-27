@@ -24,7 +24,7 @@
         </div>
         <div class="col-md-9">
             <div class="form-group">
-                <textarea class="form-control" type="textarea" id="message" placeholder="OAuth Token" maxlength="140" rows="7"></textarea>
+                <textarea id="tokenarea" class="form-control" type="textarea" id="message" placeholder="OAuth Token" maxlength="140" rows="7"></textarea>
             </div>
         </div>
     </div>
@@ -37,11 +37,11 @@
 <div class="row top-buffer">
     <div class="form-group">
         <div class="col-md-3">
-            <button id="btnCallService" type="button" class="btn btn-primary">Get Data</button>
+            <button id="btnservice" type="button" class="btn btn-primary">Get Data</button>
         </div>
         <div class="col-md-9">
             <div class="form-group">
-                <textarea class="form-control" type="textarea" id="message" placeholder="Service Data" maxlength="140" rows="7"></textarea>
+                <textarea id="dataarea" class="form-control" type="textarea" id="message" placeholder="Service Data" maxlength="140" rows="7"></textarea>
             </div>
         </div>
     </div>
@@ -51,3 +51,32 @@
         If you reveal your secrets to the wind, you should not blame the wind for revealing them to the trees.
     </div>
 </div>
+<script>
+    
+    function btnTokenClick() {
+        oauthURL = $('#oauthURL').val();
+        $.ajax({
+            url: '@Action("gettoken")', 
+            method: 'POST'
+        })
+            .done(function (data) {
+                if (console && console.log) {
+                    console.log("Sample of data:", data.slice(0, 100));
+                }
+            });
+        $('#tokenarea').val("token");
+
+    }
+
+    function btnGetData() {
+        $('#dataarea').val('some data');
+
+    }
+
+    $(document).ready(function () {
+        $('#btntoken').click(btnTokenClick);
+        $('#btnservice').click(btnGetData);
+    });
+
+    
+</script>
