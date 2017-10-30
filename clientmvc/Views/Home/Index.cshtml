@@ -19,6 +19,31 @@
 </div>
 <div class="row top-buffer">
     <div class="form-group">
+        <label class="col-md-3 control-label" for="name">Grant Type</label>
+        <div class="col-md-3">
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <input type="radio" name="granttype" value="0" />
+                </span>
+                <div class="form-control">
+                    ClientCredentials
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <input type="radio" name="granttype" value="1" checked />
+                </span>
+                <div class="form-control">
+                    Password
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row top-buffer">
+    <div class="form-group">
         <div class="col-md-3">
             <button id="btntoken" type="button" class="btn btn-primary">Get Token</button>
         </div>
@@ -67,17 +92,22 @@
 
     function btnTokenClick() {
         var oauthURL = $('#oauthURL').val();
+        var grantTypeVal = $('input[name=granttype]:checked').val();
         $.ajax({
             url: '@Url.Action("GetOAuthToken")',
             method: 'POST',
             data: {
-                url: oauthURL
+                url: oauthURL,
+                granttype: grantTypeVal
             },
         })
         .done(function (data) {
             $('#tokenarea').val(data);
-            var decodedoAuth = jwt_decode(data);
-            $('#tokendecodearea').val(JSON.stringify(decodedoAuth, null, 4));
+            var completeData = JSON.parse(data);
+            var accessToken = completeData.access_token;
+            var decodedoAuth = jwt_decode(accessToken);
+            completeData.access_token = decodedoAuth;
+            $('#tokendecodearea').val(JSON.stringify(completeData, null, 4));
             })
         .fail(function (jqXHR, textStatus, errorThrown) {
                 $('#tokenarea').val(errorThrown);
@@ -86,7 +116,8 @@
 
     function btnGetData() {
         var serviceURL = $('#serviceURL').val();
-        var oauthToken = $('#tokenarea').val();
+        var oauthTokenStr = $('#tokenarea').val();
+        var oauthToken = JSON.parse(oauthTokenStr).access_token;
         $.ajax({
             url: '@Url.Action("GetDataFromService")',
             method: 'GET',
@@ -106,7 +137,7 @@
     $(document).ready(function () {
         $('#btntoken').click(btnTokenClick);
         $('#btnservice').click(btnGetData);
-        $('#oauthURL').val('https://1ddd6fe2-ae1e-4b97-b186-df0aa0053a83.mock.pstmn.io/kiwiservices/oauthservice')
+        $('#oauthURL').val('http://10.4.1.232/kiwiservices/oauthservice')
         $("#serviceURL").val('http://localhost:5002/api/values')
     });
 

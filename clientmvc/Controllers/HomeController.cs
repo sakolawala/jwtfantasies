@@ -17,11 +17,35 @@ namespace clientmvc.Controllers
         }
 
         [HttpPost]
-        public JsonResult GetOAuthToken(string url)
+        public JsonResult GetOAuthToken(string url, int granttype)
         {
             var client = new RestClient(url);
             var request = new RestRequest("connect/token", Method.POST);
-            request.AddHeader("x-api-key", "03ed12b14712499083d5aca24f56aed7");
+            if (granttype == 0)
+            {
+                request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+                //Client Credential Workflow
+                request.AddParameter("grant_type", "client_credentials");
+                request.AddParameter("scope", "api1");
+                request.AddParameter("client_id", "client");
+                request.AddParameter("client_secret", "secret");
+            }
+            else if (granttype == 1)
+            {
+                request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+                //Password Grant Flow
+                request.AddParameter("grant_type", "password");
+                request.AddParameter("username", "dmullins");
+                request.AddParameter("password", "cex123");
+                request.AddParameter("scope", "api1 offline_access");
+                request.AddParameter("client_id", "roclient");
+                request.AddParameter("client_secret", "secret");
+            }
+            else
+            {
+                request.AddHeader("x-api-key", "03ed12b14712499083d5aca24f56aed7");
+            }
+            
             IRestResponse response = client.ExecuteAsync2(request).Result;
             var token = response.Content;
             return Json(token);
