@@ -59,7 +59,11 @@ namespace clientmvc.Controllers
             var bearertoken = "Bearer " + token;
             request.AddHeader("Authorization", bearertoken);
             IRestResponse response = client.ExecuteAsync2(request).Result;
-            var data = response.Content;
+            var data = "";
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                data = response.Content;
+            else
+                data = response.StatusDescription;
             return Json(data);
         }
 
