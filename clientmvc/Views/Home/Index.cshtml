@@ -2,6 +2,7 @@
     ViewData["Title"] = "Home Page";
 }
 <script src="~/js/jwt-decode.js"></script>
+<script src="~/lib/stopwatch.js"></script>
 <div class="jumbotron">
     <h2>Simple MVC Client</h2>
     <p>This world is the evil place. I am the simple client trying to authenticate and get my data ... </p>
@@ -46,6 +47,8 @@
     <div class="form-group">
         <div class="col-md-3">
             <button id="btntoken" type="button" class="btn btn-primary">Get Token</button>
+            <img id="tokenwait" width="50" height="30" src="~/images/wait.gif" />
+            <span id="tokenTimer">0:00:00:000</span>
         </div>
         <div class="col-md-4">
             <div class="form-group">
@@ -61,7 +64,7 @@
 </div>
 <div class="panel panel-default">
     <div class="panel-heading">
-       Use this token to get the data from the services
+        Use this token to get the data from the services
     </div>
 </div>
 <div class="row top-buffer">
@@ -75,6 +78,8 @@
     <div class="form-group">
         <div class="col-md-3">
             <button id="btnservice" type="button" class="btn btn-primary">Get Data</button>
+            <img id="servicewait" width="50" height="30" src="~/images/wait.gif" />
+            <span id="serviceTimer">0:00:00:000</span>
         </div>
         <div class="col-md-9">
             <div class="form-group">
@@ -89,10 +94,11 @@
     </div>
 </div>
 <script>
-
+    var m_stopwatch;
     function btnTokenClick() {
         var oauthURL = $('#oauthURL').val();
         var grantTypeVal = $('input[name=granttype]:checked').val();
+        TimerStart('token');
         $.ajax({
             url: '@Url.Action("GetOAuthToken")',
             method: 'POST',
@@ -102,6 +108,7 @@
             },
         })
         .done(function (data) {
+            TimerStop('token');
             $('#tokenarea').val(data);
             var completeData = JSON.parse(data);
             var accessToken = completeData.access_token;
@@ -110,6 +117,7 @@
             $('#tokendecodearea').val(JSON.stringify(completeData, null, 4));
             })
         .fail(function (jqXHR, textStatus, errorThrown) {
+                TimerStop('token');
                 $('#tokenarea').val(errorThrown);
             });
     }
@@ -118,6 +126,7 @@
         var serviceURL = $('#serviceURL').val();
         var oauthTokenStr = $('#tokenarea').val();
         var oauthToken = JSON.parse(oauthTokenStr).access_token;
+        TimerStart('service');
         $.ajax({
             url: '@Url.Action("GetDataFromService")',
             method: 'GET',
@@ -125,20 +134,40 @@
                 url: serviceURL,
                 token: oauthToken
             },
-        })
-        .done(function (data) {
-                $('#dataarea').val(data);        
-            })
-        .fail(function (jqXHR, textStatus, errorThrown) {
+        }).done(function (data) {
+            TimerStop('service');
+            $('#dataarea').val(data);
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+                TimerStop('service');
                 $('#dataarea').val(errorThrown);
             });
+    }
+
+    function TimerStart(whichone) {
+        var imgTag = "#" + whichone + "wait";
+        var timerTag = "#" + whichone + "Timer";
+        $(imgTag).show();
+        $(timerTag).show();        
+        m_stopwatch = stopwatch(timerTag);
+        m_stopwatch.start();
+    }
+
+    function TimerStop(whichone) {
+        var imgTag = "#" + whichone + "wait";
+        var timerTag = "#" + whichone + "Timer";
+        m_stopwatch.stop();
+        $(imgTag).hide();
     }
 
     $(document).ready(function () {
         $('#btntoken').click(btnTokenClick);
         $('#btnservice').click(btnGetData);
-        $('#oauthURL').val('http://10.4.1.232/kiwiservices/oauthservice')
-        $("#serviceURL").val('http://localhost:5002/api/values')
+        $('#oauthURL').val('http://10.4.1.232/kiwiservices/oauthservice');
+        $("#serviceURL").val('http://localhost:5002/api/values');
+        $('#tokenwait').hide();
+        $('#servicewait').hide();
+        $('#tokenTimer').hide();
+        $('#serviceTimer').hide();
     });
 
 
