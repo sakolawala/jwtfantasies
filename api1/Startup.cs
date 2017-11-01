@@ -28,9 +28,7 @@ namespace api1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string aud = Configuration.GetSection("jwt:Audience").Value;
-            string aut = Configuration.GetSection("jwt:Authority").Value;
-            bool requireHttps = Configuration.GetValue<bool>("jwt:RequireHttps");
+
 
             services.AddAuthentication(option =>
             {
@@ -38,22 +36,24 @@ namespace api1
                 option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(o =>
             {
-                ConfigureWithOfflineValidation(o, aud);
+                ConfigureWithOfflineValidation(o);
             });
             services.AddLogging(c => c.AddConsole());
             services.AddMvc();
         }
 
-        private void ConfigureWithOfflineValidation(JwtBearerOptions o, string aud)
+        private void ConfigureWithOfflineValidation(JwtBearerOptions o)
         {
             string certificatePath = Configuration.GetSection("jwt:CertificatePath").Value;
             string certificatePassword = Configuration.GetSection("jwt:CertificatePassword").Value;
+            string aut = Configuration.GetSection("jwt:Authority").Value;
+            string aud = Configuration.GetSection("jwt:Audience").Value;
 
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                ValidateIssuer = true,
-                ValidIssuer = "http://10.4.1.232/kiwiservices/oauthservice",
+                ValidateIssuer = false,
+                ValidIssuer = aut,
                 IssuerSigningKey = new X509SecurityKey(new X509Certificate2(certificatePath, certificatePassword)),
             };
 
@@ -62,8 +62,12 @@ namespace api1
         }
 
         private void ConfigureWithOnlineValidation
-            (JwtBearerOptions o, string aud, string aut, bool requireHttps)
+            (JwtBearerOptions o)
         {
+            string aud = Configuration.GetSection("jwt:Audience").Value;
+            string aut = Configuration.GetSection("jwt:Authority").Value;
+            bool requireHttps = Configuration.GetValue<bool>("jwt:RequireHttps");
+
             o.Audience = aud;
             o.Authority = aut;
             o.RequireHttpsMetadata = requireHttps;
