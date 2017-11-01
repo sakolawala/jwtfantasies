@@ -40,6 +40,7 @@ namespace api1
             {
                 ConfigureWithOfflineValidation(o, aud);
             });
+            services.AddLogging(c => c.AddConsole());
             services.AddMvc();
         }
 

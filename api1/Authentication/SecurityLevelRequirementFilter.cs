@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace api1.Authentication
@@ -10,14 +12,18 @@ namespace api1.Authentication
     public class SecurityLevelRequirementFilter : IAuthorizationFilter
     {
         readonly int _actionSecurityLevel;
+        ILogger _logger;
 
-        public SecurityLevelRequirementFilter(int securityLevel)
+        public SecurityLevelRequirementFilter(ILogger<SecurityLevelRequirementFilter> logger, 
+                int securityLevel)
         {
             _actionSecurityLevel = securityLevel;
+            _logger = logger;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
+            LogDebugMessage("OnAutherization Method Called");
             var hasClaim = context.HttpContext.User.Claims.Any(c => c.Type == "SecurityLevel");
             if (!hasClaim)
             {
@@ -45,6 +51,7 @@ namespace api1.Authentication
                     context.Result = new ForbidResult();
                 }
             }
+            LogDebugMessage("OnAutherization Method Exited");
         }
 
         private void CheckUserSecurityLevel(AuthorizationFilterContext context, int userSecurityLevel)
@@ -61,10 +68,25 @@ namespace api1.Authentication
         }
 
         private void AddedBearerErrorHeader(AuthorizationFilterContext context, string BearerError, string BearerErrorDescription)
-        {
+        {            
             string formatError = string.Format("Bearer error=\"{0}\", error_description=\"{1}\"", BearerError, BearerErrorDescription);
             Microsoft.Extensions.Primitives.StringValues authError = new Microsoft.Extensions.Primitives.StringValues(formatError);
             context.HttpContext.Response.Headers.Add("www-authenticate", authError);
+            LogWarningMessage("Autherization Bearer Errror: " + formatError);
+        }
+
+        private void LogDebugMessage(string message, [CallerMemberName] string callerName = "")
+        {
+            if (_logger != null)
+                message = callerName + ":" + message;
+            _logger.LogDebug(message);
+        }
+
+        private void LogWarningMessage(string message, [CallerMemberName] string callerName = "")
+        {
+            if (_logger != null)
+                message = callerName + ":" + message;
+            _logger.LogWarning(message);
         }
     }
 }
