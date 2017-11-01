@@ -14,7 +14,7 @@ namespace api1.Controllers
     {
         // GET api/values
         [HttpGet]        
-        [SecurityLevel(2)]
+        [SecurityLevel(5)]
         public IEnumerable<string> Get()
         {
             return new string[] { "value1", "value2" };
