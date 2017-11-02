@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography.X509Certificates;
+using api1.Authentication;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace api1
 {
@@ -28,16 +30,23 @@ namespace api1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            //services.AddAuthentication(option =>
+            //{
+            //    option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //}).AddJwtBearer(o =>
+            //{
+            //    ConfigureWithOfflineValidation(o);
+            //});
 
             services.AddAuthentication(option =>
             {
-                option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(o =>
-            {
-                ConfigureWithOfflineValidation(o);
-            });
+                option.DefaultAuthenticateScheme = "NoAuthScheme";
+                option.DefaultChallengeScheme = "NoAuthScheme";
+            }).AddNoAuthAuth(o => { });
+
+            //services.AddSingleton<IFilterProvider, EncFilterProvider>();
+
             services.AddLogging(c => c.AddConsole());
             services.AddMvc();
         }
@@ -54,7 +63,7 @@ namespace api1
                 ValidateIssuerSigningKey = true,
                 ValidateIssuer = false,
                 ValidIssuer = aut,
-                IssuerSigningKey = new X509SecurityKey(new X509Certificate2(certificatePath, certificatePassword)),
+                IssuerSigningKey = new X509SecurityKey(new X509Certificate2(certificatePath)),
             };
 
             o.Audience = aud;
@@ -86,10 +95,10 @@ namespace api1
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
             app.UseAuthentication();
 
             app.UseMvc();

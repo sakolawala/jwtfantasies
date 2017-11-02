@@ -23,7 +23,19 @@ namespace api1.Authentication
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            LogDebugMessage("OnAutherization Method Called");
+            LogDebugMessage("OnAutherization Method Called");            
+
+            //Check if the Authentication is off with Kiwi Setting
+            var hasNoAuthClaim = context.HttpContext.User.Claims.Any(c => c.Type == "KiwiAuth");
+            if (hasNoAuthClaim)
+            {
+                LogDebugMessage("KiwiAuth set to No Autherization, Skipping SecurityLevel Autherization");
+                var userSecurityClaim = context.HttpContext.User.Claims.Where(c => c.Type == "KiwiAuth").FirstOrDefault();
+                if (userSecurityClaim.Value == "SkipAuth")
+                    return;                
+            }
+
+            //Kiwi Authentication is on
             var hasClaim = context.HttpContext.User.Claims.Any(c => c.Type == "SecurityLevel");
             if (!hasClaim)
             {
